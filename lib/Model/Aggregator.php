@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2011-2020, The volkszaehler.org project
  * @license https://www.gnu.org/licenses/gpl-3.0.txt GNU General Public License version 3
@@ -22,12 +23,8 @@
 
 namespace Volkszaehler\Model;
 
-use Doctrine\ORM\Mapping;
-
-use Volkszaehler\Interpreter;
-use Doctrine\ORM;
-use Doctrine\Common\Collections;
 use Doctrine\Common\Collections\ArrayCollection;
+#use Doctrine\ORM\Mapping as ORM;
 
 /**
  * Aggregator entity
@@ -35,14 +32,15 @@ use Doctrine\Common\Collections\ArrayCollection;
  * @author Steffen Vogel <info@steffenvogel.de>
  * @todo use nested sets: http://github.com/blt04/doctrine2-nestedset
  *
- * @Entity
+ * @Doctrine\ORM\Mapping\Entity
  */
-class Aggregator extends Entity {
+class Aggregator extends Entity
+{
 	/**
-	 * @ManyToMany(targetEntity="Entity", inversedBy="parents")
-	 * @JoinTable(name="entities_in_aggregator",
-	 * 		joinColumns={@JoinColumn(name="parent_id", referencedColumnName="id")},
-	 * 		inverseJoinColumns={@JoinColumn(name="child_id", referencedColumnName="id")}
+	 * @Doctrine\ORM\Mapping\ManyToMany(targetEntity="Entity", inversedBy="parents")
+	 * @Doctrine\ORM\Mapping\JoinTable(name="entities_in_aggregator",
+	 * 		joinColumns={@Doctrine\ORM\Mapping\JoinColumn(name="parent_id", referencedColumnName="id", nullable=false)},
+	 * 		inverseJoinColumns={@Doctrine\ORM\Mapping\JoinColumn(name="child_id", referencedColumnName="id", nullable=false)}
 	 * )
 	 */
 	protected $children = NULL;
@@ -50,7 +48,8 @@ class Aggregator extends Entity {
 	/**
 	 * Constructor
 	 */
-	public function __construct($type) {
+	public function __construct($type)
+	{
 		parent::__construct($type);
 
 		$this->children = new ArrayCollection();
@@ -61,9 +60,10 @@ class Aggregator extends Entity {
 	 *
 	 * @param Entity $child
 	 * @todo check if the entity is already member of the group
-	 * @todo add bidrectional association
+	 * @todo add bidirectional association
 	 */
-	public function addChild(Entity $child) {
+	public function addChild(Entity $child)
+	{
 		if ($this->children->contains($child)) {
 			throw new \Exception('Entity is already a child of the aggregator');
 		}
@@ -79,9 +79,10 @@ class Aggregator extends Entity {
 	 * Checks if aggregator contains given entity
 	 *
 	 * @param Entity $entity
-	 * @param boolean $recursive should we search recursivly?
+	 * @param boolean $recursive should we search recursively?
 	 */
-	protected function contains(Entity $entity, $recursive = FALSE) {
+	protected function contains(Entity $entity, $recursive = FALSE)
+	{
 		if ($this->children->contains($entity)) {
 			return TRUE;
 		}
@@ -104,7 +105,8 @@ class Aggregator extends Entity {
 	 * @todo check if the entity is member of the group
 	 * @todo add bidrectional association
 	 */
-	public function removeChild(Entity $child) {
+	public function removeChild(Entity $child)
+	{
 		if (!$this->children->removeElement($child)) {
 			throw new \Exception('This entity is not a child of this aggregator');
 		}
@@ -113,8 +115,8 @@ class Aggregator extends Entity {
 	/*
 	 * Setter & getter
 	 */
-	public function getChildren() { return $this->children->toArray(); }
+	public function getChildren()
+	{
+		return $this->children->toArray();
+	}
 }
-
-
-?>

@@ -387,6 +387,19 @@
 		}
 	},
 	{
+		"name"			: "humidity absolute",
+		"optional"			: ["resolution"],
+		"icon"			: "rain.png",
+		"unit"			: "g/m³",
+		"interpreter"			: "Volkszaehler\\Interpreter\\SensorInterpreter",
+		"model"			: "Volkszaehler\\Model\\Channel",
+		"translation"			: {
+			"de" : "absolute Luftfeuchtigkeit",
+			"en" : "absolute humidity",
+			"fr" : "Humidité absolue"
+		}
+	},
+	{
 		"name"			: "windspeed",
 		"optional"		: ["resolution"],
 		"icon"			: "propeller.png",
@@ -448,6 +461,20 @@
 			"en" : "Frequency"
 		}
 	},
+		{
+		"name"			: "universalcounter",
+		"required"		: ["unit"],
+		"optional"		: ["resolution"],
+		"icon"			: "freq.png",
+		"interpreter"		: "Volkszaehler\\Interpreter\\ImpulseInterpreter",
+		"style"			: "steps",
+		"model"			: "Volkszaehler\\Model\\Channel",
+		"hasConsumption"	: true,
+		"translation"		: {
+			"de" : "Allgemeiner Impulszähler",
+			"en" : "Universal Pulse Counter"
+		}
+	},
 	{
 		"name"			: "universalsensor",
 		"required"		: ["unit"],
@@ -496,6 +523,30 @@
 		"translation"		: {
 			"de" : "Verbrauchssensor (virt.)",
 			"en" : "Consumption Sensor (virt.)"
+		}
+	},
+  {
+    "name"                  : "co2 concentration",
+    "optional"              : [],
+    "icon"                  : "propeller.png",
+    "unit"                  : "ppm",
+    "interpreter"           : "Volkszaehler\\Interpreter\\SensorInterpreter",
+    "model"                 : "Volkszaehler\\Model\\Channel",
+    "translation"           : {
+      "de" : "CO2-Konzentration",
+      "en" : "CO2 concentration",
+      "fr" : "Concentration CO2"
+    }
+  },
+	{
+		"name"                  : "particulate matter",
+		"icon"			: "",
+		"unit"                  : "µg/m³",
+		"interpreter"           : "Volkszaehler\\Interpreter\\SensorInterpreter",
+		"model"                 : "Volkszaehler\\Model\\Channel",
+		"translation"           : {
+			"de" : "Feinstaub",
+			"en" : "particulate matter"
 		}
 	}
 ]

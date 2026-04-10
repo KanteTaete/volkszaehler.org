@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2011-2020, The volkszaehler.org project
  * @license https://www.gnu.org/licenses/gpl-3.0.txt GNU General Public License version 3
@@ -22,45 +23,39 @@
 
 namespace Volkszaehler\Model;
 
+#use Doctrine\ORM\Mapping as ORM;
+
 use Volkszaehler\Definition;
-use Volkszaehler\Util;
-use Volkszaehler\Model;
 
 /**
  * Property entity
  *
  * @author Steffen Vogel <info@steffenvogel.de>
  *
- * @Entity
- * @Table(
- * 		name="properties",
- * 		uniqueConstraints={
- * 			@UniqueConstraint(name="property_unique", columns={"entity_id", "pkey"})
- * 		}
- * )
- * @HasLifecycleCallbacks
+ * @Doctrine\ORM\Mapping\Entity
+ * @Doctrine\ORM\Mapping\Table(name="properties")
+ * @Doctrine\ORM\Mapping\HasLifecycleCallbacks
  */
-class Property {
+class Property
+{
 	/**
-	 * @Id
-	 * @Column(type="integer", nullable=false)
-	 * @GeneratedValue(strategy="AUTO")
-	 *
-	 * @todo wait until DDC-117 is fixed (PKs on FKs)
+	 * @Doctrine\ORM\Mapping\Id
+	 * @Doctrine\ORM\Mapping\ManyToOne(targetEntity="Entity", inversedBy="properties")
+	 * @Doctrine\ORM\Mapping\JoinColumn(name="entity_id")
 	 */
-	protected $id;
+	protected $entity;
 
 	/**
-	 * @Column(name="pkey", type="string", nullable=false)
+	 * @Doctrine\ORM\Mapping\Id
+	 * @Doctrine\ORM\Mapping\Column(name="pkey", type="string")
 	 * HINT: column name "key" is reserved by mysql
 	 */
 	protected $key;
 
-	/** @Column(type="text", nullable=false) */
+	/**
+	 * @Doctrine\ORM\Mapping\Column(type="text", nullable=false)
+	 */
 	protected $value;
-
-	/** @ManyToOne(targetEntity="Entity", inversedBy="properties") */
-	protected $entity;
 
 	/**
 	 * Constructor
@@ -68,7 +63,8 @@ class Property {
 	 * @param string $key
 	 * @param string $value
 	 */
-	public function __construct(Model\Entity $entity, $key, $value) {
+	public function __construct(Entity $entity, $key, $value)
+	{
 		$this->entity = $entity;
 		$this->key = $key;
 		$this->value = $value;
@@ -77,17 +73,16 @@ class Property {
 	/**
 	 * Cast property value according to $this->type
 	 *
-	 * @PostLoad
+	 * @Doctrine\ORM\Mapping\PostLoad
 	 */
-	public function cast() {
+	public function cast()
+	{
 		$type = $this->getDefinition()->getType();
 		if ($type == 'multiple') {
 			// TODO
-		}
-		elseif ($type == 'text') {
+		} elseif ($type == 'text') {
 			settype($this->value, 'string');
-		}
-		else {
+		} else {
 			settype($this->value, $type);
 		}
 	}
@@ -95,13 +90,13 @@ class Property {
 	/**
 	 * Undo type cast to prevent Doctrine storing unmodified properties
 	 *
-	 * @PreFlush
+	 * @Doctrine\ORM\Mapping\PreFlush
 	 */
-	public function uncast() {
+	public function uncast()
+	{
 		if ($this->value === false) { // force boolean false to 0 instead of ''
 			$this->value = '0';
-		}
-		else {
+		} else {
 			settype($this->value, 'string');
 		}
 	}
@@ -111,10 +106,11 @@ class Property {
 	 *
 	 * Throws an exception if something is incorrect
 	 *
-	 * @PrePersist
-	 * @PreUpdate
+	 * @Doctrine\ORM\Mapping\PrePersist
+	 * @Doctrine\ORM\Mapping\PreUpdate
 	 */
-	public function validate() {
+	public function validate()
+	{
 		if (!Definition\PropertyDefinition::exists($this->key)) {
 			throw new \Exception('Invalid property: \'' . $this->key . '\'');
 		}
@@ -128,11 +124,23 @@ class Property {
 	 * Setter & getter
 	 */
 
-	public function getKey() { return $this->key; }
-	public function getValue() { return $this->value; }
-	public function getDefinition() { return Definition\PropertyDefinition::get($this->key); }
+	public function getKey()
+	{
+		return $this->key;
+	}
 
-	public function setValue($value) { $this->value = $value; }
+	public function getValue()
+	{
+		return $this->value;
+	}
+
+	public function getDefinition()
+	{
+		return Definition\PropertyDefinition::get($this->key);
+	}
+
+	public function setValue($value)
+	{
+		$this->value = $value;
+	}
 }
-
-?>

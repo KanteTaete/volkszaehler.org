@@ -88,9 +88,15 @@ $(document).ready(function() {
 		$.setCookie('vz_entities', null);
 	}
 
-	// start loading cookies/url params
-	vz.entities.loadCookie(); // load uuids from cookie
-	vz.options.loadCookies(); // load options from cookie
+	if (!(params.hasOwnProperty('uuid') || params.uuid)) {
+			// only load cookies when no uuid present in url params	
+			vz.entities.loadCookie(); // load uuids from cookie
+	}
+
+	if (!(params.hasOwnProperty('options') || params.options)) {
+			// only load cookies when no options present in url params	
+			vz.options.loadCookies(); // load options from cookie
+	} 
 
 	// set x axis limits _after_ loading options cookie
 	vz.options.plot.xaxis.max = new Date().getTime();
@@ -123,7 +129,7 @@ $(document).ready(function() {
 			// set global parameters for display mode, then load data accordingly
 			vz.wui.changeDisplayMode(vz.options.mode || "current");
 			vz.entities.loadData().done(function() {
-				// vz.wui.resizePlot();
+				vz.wui.resizePlot();
 				vz.wui.drawPlot();
 				vz.entities.loadTotalConsumption();
 			});

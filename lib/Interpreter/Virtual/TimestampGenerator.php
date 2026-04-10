@@ -38,15 +38,15 @@ class TimestampGenerator implements \IteratorAggregate {
 	/**
 	 * Yield sequential timestamps from all iterators
 	 */
-	public function getIterator() {
+	public function getIterator() : \Traversable {
 		foreach ($this->iterators as $iterator) {
 			$iterator->rewind();
 		}
 
 		// get minimum from timestamp
 		$from = array_reduce($this->iterators, function($carry, $iterator) {
-			// if (!$iterator->valid())
-			// 	return $carry;
+			if (!$iterator->valid())
+				return $carry;
 			$current = $iterator->current();
 			if ($carry === null || $current < $carry)
 				return $current;

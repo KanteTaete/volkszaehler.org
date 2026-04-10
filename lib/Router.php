@@ -27,10 +27,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
-use Symfony\Component\Debug\ErrorHandler;
+use Symfony\Component\ErrorHandler\Debug;
 
 use Doctrine\ORM;
-use Doctrine\Common\Cache;
+use Doctrine\Common\Cache\Psr6\DoctrineProvider;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 use Volkszaehler\View;
 use Volkszaehler\Util;
@@ -62,6 +63,8 @@ class Router implements HttpKernelInterface {
 		'POST'			=> 'add',
 		'DELETE'		=> 'delete',
 		'GET'			=> 'get',
+		'HEAD'			=> 'get',
+		'OPTIONS'		=> 'options',
 		'PATCH'			=> 'edit',
 		'PULL'			=> 'edit'		// not REST-conform
 	);
@@ -96,7 +99,7 @@ class Router implements HttpKernelInterface {
 	 */
 	public function __construct() {
 		// handle errors as exceptions
-		ErrorHandler::register();
+		Debug::enable();
 	}
 
 	/**
@@ -199,6 +202,9 @@ class Router implements HttpKernelInterface {
 		if (null === ($operation = $request->query->get('operation'))) {
 			$operation = self::$operationMapping[$request->getMethod()];
 		}
+		if ($operation === 'options') {
+			$this->view = new View\Options($request);
+		}
 
 		$class = self::$controllerMapping[$context];
 		$controller = new $class($request, $this->em, $this->view);
@@ -234,11 +240,11 @@ class Router implements HttpKernelInterface {
 	public static function createEntityManager($admin = false) {
 		$config = new ORM\Configuration;
 
-		$cache = new Cache\ArrayCache;
-		$config->setMetadataCacheImpl($cache);
-		$config->setQueryCacheImpl($cache);
+		$cache = new ArrayAdapter(0, false);
+		$config->setMetadataCache($cache);
+		$config->setQueryCacheImpl(DoctrineProvider::wrap($cache));
 
-		$driverImpl = $config->newDefaultAnnotationDriver(VZ_DIR . '/lib/Model');
+		$driverImpl = $config->newDefaultAnnotationDriver(VZ_DIR . '/lib/Model', false);
 		$config->setMetadataDriverImpl($driverImpl);
 
 		$config->setProxyDir(VZ_DIR . '/lib/Model/Proxy');

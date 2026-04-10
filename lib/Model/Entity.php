@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @copyright Copyright (c) 2011-2020, The volkszaehler.org project
  * @license https://www.gnu.org/licenses/gpl-3.0.txt GNU General Public License version 3
@@ -22,9 +23,10 @@
 
 namespace Volkszaehler\Model;
 
-use Doctrine\ORM;
 use Doctrine\Common\Collections;
 use Webpatser\Uuid\Uuid as UUID;
+//use Doctrine\ORM\Mapping as ORM;
+#use Doctrine\ORM\Mapping;
 
 use Volkszaehler\Definition;
 
@@ -33,38 +35,48 @@ use Volkszaehler\Definition;
  *
  * @author Steffen Vogel <info@steffenvogel.de>
  *
- * @Entity
- * @Table(name="entities")
- * @InheritanceType("SINGLE_TABLE")
- * @DiscriminatorColumn(name="class", type="string")
- * @DiscriminatorMap({
+ * @Annotation
+ *
+ * @Doctrine\ORM\Mapping\Entity
+ * @Doctrine\ORM\Mapping\Table(name="entities")
+ * @Doctrine\ORM\Mapping\InheritanceType("SINGLE_TABLE")
+ * @Doctrine\ORM\Mapping\DiscriminatorColumn(name="class", type="string")
+ * @Doctrine\ORM\Mapping\DiscriminatorMap({
  * 		"channel" = "Channel",
  * 		"aggregator" = "Aggregator"
  * })
- * @HasLifecycleCallbacks
+ * @Doctrine\ORM\Mapping\HasLifecycleCallbacks
  */
-abstract class Entity {
+abstract class Entity
+{
+	const UUID_LENGTH = 36;
+
 	/**
-	 * @Id
-	 * @Column(type="integer", nullable=false)
-	 * @GeneratedValue(strategy="AUTO")
+	 * @Doctrine\ORM\Mapping\Id
+	 * @Doctrine\ORM\Mapping\Column(type="integer")
+	 * @Doctrine\ORM\Mapping\GeneratedValue(strategy="AUTO")
 	 */
 	protected $id;
 
-	/** @Column(type="string", length=36, nullable=false, unique=true) */
+	/**
+	 * Doctrine\ORM\Mapping\Column(type="string", length=36, nullable=false, unique=true)
+	 * @Doctrine\ORM\Mapping\Column(type="string", length=self::UUID_LENGTH, nullable=false, unique=true)
+	 */
 	protected $uuid;
 
-	/** @Column(type="string", nullable=false) */
+	/**
+	 * @Doctrine\ORM\Mapping\Column(type="string", nullable=false)
+	 */
 	protected $type;
 
 	/**
-	 * @OneToMany(targetEntity="Property", mappedBy="entity", cascade={"remove", "persist"}, orphanRemoval=true)
-	 * @OrderBy({"key" = "ASC"})
+	 * @Doctrine\ORM\Mapping\OneToMany(targetEntity="Property", mappedBy="entity", cascade={"remove", "persist"}, orphanRemoval=true)
+	 * @Doctrine\ORM\Mapping\OrderBy({"key" = "ASC"})
 	 */
 	protected $properties = NULL;
 
 	/**
-	 * @ManyToMany(targetEntity="Aggregator", mappedBy="children")
+	 * @Doctrine\ORM\Mapping\ManyToMany(targetEntity="Aggregator", mappedBy="children")
 	 */
 	protected $parents = NULL;
 
@@ -73,7 +85,8 @@ abstract class Entity {
 	 *
 	 * @param string $type
 	 */
-	public function __construct($type) {
+	public function __construct($type)
+	{
 		if (!Definition\EntityDefinition::exists($type)) {
 			throw new \Exception('Unknown entity type: \'' . $type . '\'');
 		}
@@ -89,9 +102,10 @@ abstract class Entity {
 	/**
 	 * Checks for required and invalid properties
 	 *
-	 * @PrePersist
+	 * @Doctrine\ORM\Mapping\PrePersist
 	 */
-	public function checkProperties() {
+	public function checkProperties()
+	{
 		$missingProperties = array_diff($this->getDefinition()->getRequiredProperties(), array_keys($this->getProperties()));
 		$invalidProperties = array_diff(array_keys($this->getProperties()), $this->getDefinition()->getValidProperties());
 
@@ -110,7 +124,8 @@ abstract class Entity {
 	 * @param string $key
 	 * @return mixed
 	 */
-	public function getProperty($key) {
+	public function getProperty($key)
+	{
 		return $this->findProperty($key)->getValue();
 	}
 
@@ -120,10 +135,11 @@ abstract class Entity {
 	 * @param string $prefix
 	 * @return array
 	 */
-	public function getProperties($prefix = NULL) {
+	public function getProperties($prefix = NULL)
+	{
 		$properties = array();
 		foreach ($this->properties as $property) {
-			if (substr($property->getKey(), 0, strlen($prefix)) == $prefix) {
+			if (is_null($prefix) || (substr($property->getKey(), 0, strlen($prefix)) == $prefix)) {
 				$properties[$property->getKey()] = $property->getValue();
 			}
 		}
@@ -137,7 +153,8 @@ abstract class Entity {
 	 * @param string $regex
 	 * @return array
 	 */
-	public function getPropertiesByRegex($regex) {
+	public function getPropertiesByRegex($regex)
+	{
 		$properties = array();
 		foreach ($this->properties as $property) {
 			if (preg_match($regex, $property->getKey())) {
@@ -154,7 +171,8 @@ abstract class Entity {
 	 * @param string $key
 	 * @return Property|bool
 	 */
-	protected function findProperty($key) {
+	protected function findProperty($key)
+	{
 		foreach ($this->properties as $property) {
 			if ($property->getKey() == $key) {
 				return $property;
@@ -170,7 +188,8 @@ abstract class Entity {
 	 * @param string $key
 	 * @return boolean
 	 */
-	public function hasProperty($key) {
+	public function hasProperty($key)
+	{
 		foreach ($this->properties as $property) {
 			if ($property->getKey() == $key) {
 				return TRUE;
@@ -185,12 +204,12 @@ abstract class Entity {
 	 * @param string $key name of the property
 	 * @param mixed $value of the property
 	 */
-	public function setProperty($key, $value) {
+	public function setProperty($key, $value)
+	{
 		if ($property = $this->findProperty($key)) {
 			// property already exists; just change value
 			$property->setValue($value);
-		}
-		else {
+		} else {
 			// create new property
 			$property = new Property($this, $key, $value);
 			$this->properties->add($property);
@@ -202,7 +221,8 @@ abstract class Entity {
 	 *
 	 * @param string $key name of the property
 	 */
-	public function deleteProperty($key) {
+	public function deleteProperty($key)
+	{
 		$property = $this->findProperty($key);
 
 		if (!$property) {
@@ -216,7 +236,8 @@ abstract class Entity {
 	 * HACK - Cast properties to internal state
 	 * see https://github.com/doctrine/doctrine2/pull/382
 	 */
-	public function castProperties() {
+	public function castProperties()
+	{
 		foreach ($this->properties as $property) {
 			$property->cast();
 		}
@@ -226,10 +247,23 @@ abstract class Entity {
 	 * Setter & getter
 	 */
 
-	public function getId() { return $this->id; }		// read only
-	public function getUuid() { return $this->uuid; }	// read only
-	public function getType() { return $this->type; }	// read only
-	public function getDefinition() { return Definition\EntityDefinition::get($this->type); }
-}
+	public function getId()
+	{
+		return $this->id;
+	}
 
-?>
+	public function getUuid()
+	{
+		return $this->uuid;
+	}
+
+	public function getType()
+	{
+		return $this->type;
+	}
+
+	public function getDefinition()
+	{
+		return Definition\EntityDefinition::get($this->type);
+	}
+}

@@ -121,7 +121,7 @@ class Debug {
 	/**
 	 * Set SQL logger on entity manager
 	 */
-	protected function attachSqlLogger(Logging\SQLLogger $sqlLogger = null) {
+	protected function attachSqlLogger(?Logging\SQLLogger $sqlLogger = null) {
 		$this->sqlLogger = $sqlLogger;
 		$this->em->getConnection()->getConfiguration()->setSQLLogger($sqlLogger);
 	}
@@ -155,7 +155,7 @@ class Debug {
 	 * @author Andreas Goetz <cpuidle@gmx.de>
 	 */
 	public static function getParametrizedQuery($sql, $sqlParameters) {
-		while (count($sqlParameters)) {
+		while (count((array) $sqlParameters)) {
 			$sql = preg_replace('/\?/', self::formatSQLParameter(array_shift($sqlParameters)), $sql, 1);
 		}
 		if (php_sapi_name() === 'cli' && class_exists('\SqlFormatter')) {
